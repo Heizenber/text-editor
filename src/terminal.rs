@@ -1,11 +1,8 @@
+use crate::Position;
 use std::io::{self, stdout, Write};
+use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
-use termion::event::Key;
-use crate::Position;
-
-
-
 
 pub struct Size {
     pub width: u16,
@@ -38,7 +35,7 @@ impl Terminal {
     }
 
     pub fn cursor_position(position: &Position) {
-        let Position{mut x, mut y} = position;
+        let Position { mut x, mut y } = position;
         x = x.saturating_add(1);
         y = y.saturating_add(1);
         let x = x as u16;

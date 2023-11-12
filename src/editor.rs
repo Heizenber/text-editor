@@ -2,7 +2,6 @@ use crate::Terminal;
 
 use termion::event::Key;
 
-
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Editor {
     should_quit: bool,
@@ -17,8 +16,6 @@ pub struct Position {
 
 impl Editor {
     pub fn run(&mut self) {
-        
-
         loop {
             if let Err(error) = self.refresh_screen() {
                 die(error);
@@ -44,14 +41,21 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
-            Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
+            Key::Up 
+            | Key::Down 
+            | Key::Left 
+            | Key::Right 
+            | Key::PageUp
+            | Key::PageDown 
+            | Key::End
+            | Key::Home => self.move_cursor(pressed_key),
             _ => (),
         }
         Ok(())
     }
 
     fn move_cursor(&mut self, key: Key) {
-        let Position {mut x, mut y} = self.cursor_position;
+        let Position { mut x, mut y } = self.cursor_position;
         let size = self.terminal.size();
         let height = size.height.saturating_sub(1) as usize;
         let width = size.width.saturating_sub(1) as usize;
@@ -68,15 +72,19 @@ impl Editor {
                     x = x.saturating_add(1);
                 }
             }
+            Key::PageUp => y = 0,
+            Key::PageDown => y = height,
+            Key::Home => x = 0,
+            Key::End => x = width,
             _ => (),
         }
-        self.cursor_position = Position{x, y}
+        self.cursor_position = Position { x, y }
     }
 
     fn refresh_screen(&self) -> Result<(), std::io::Error> {
         Terminal::cursor_hide();
-        
-        Terminal::cursor_position(&Position {x: 0, y: 0});
+
+        Terminal::cursor_position(&Position { x: 0, y: 0 });
         if self.should_quit {
             Terminal::clear_screen();
             println!("Goodbye.\r");
@@ -111,9 +119,6 @@ impl Editor {
         }
     }
 }
-
-
-
 
 fn die(e: std::io::Error) {
     Terminal::clear_screen();
