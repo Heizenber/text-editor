@@ -14,7 +14,6 @@ impl From<&str> for Row {
         };
         row.update_len();
         row
-
     }
 }
 

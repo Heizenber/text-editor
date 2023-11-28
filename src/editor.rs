@@ -1,10 +1,11 @@
-use crate::Terminal;
 use crate::Document;
 use crate::Row;
+use crate::Terminal;
+use std::env;
 use termion::color;
 use termion::event::Key;
-use std::env;
 
+const STATUS_FG_COLOR: color::Rgb = color::Rgb(63, 63, 63);
 const STATUS_BG_COLOR: color::Rgb = color::Rgb(239, 239, 239);
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Editor {
@@ -65,12 +66,12 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
-            Key::Up 
-            | Key::Down 
-            | Key::Left 
-            | Key::Right 
+            Key::Up
+            | Key::Down
+            | Key::Left
+            | Key::Right
             | Key::PageUp
-            | Key::PageDown 
+            | Key::PageDown
             | Key::End
             | Key::Home => self.move_cursor(pressed_key),
             _ => (),
@@ -80,7 +81,7 @@ impl Editor {
     }
 
     fn scroll(&mut self) {
-        let Position {x, y} = self.cursor_position;
+        let Position { x, y } = self.cursor_position;
         let width = self.terminal.size().width as usize;
         let height = self.terminal.size().height as usize;
         let mut offset = &mut self.offset;
@@ -138,14 +139,14 @@ impl Editor {
                 } else {
                     0
                 }
-            },
+            }
             Key::PageDown => {
                 y = if y.saturating_add(terminal_height) < height {
                     y + terminal_height as usize
                 } else {
                     height
                 }
-            },
+            }
             Key::Home => x = 0,
             Key::End => x = width,
             _ => (),
@@ -207,17 +208,28 @@ impl Editor {
     }
 
     fn draw_status_bar(&self) {
-        let spaces = " ".repeat(self.terminal.size().width as usize);
+        let mut status;
+        let width = self.terminal.size().width as usize;
+        let mut file_name = "[No Name]".to_string();
+        if let Some(name) = &self.document.file_name {
+            file_name = name.clone();
+            file_name.truncate(20);
+        }
+        status = format!("{} - {} lines", file_name, self.document.len());
+        if width > status.len() {
+            status.push_str(&" ".repeat(width - status.len()));
+        }
+        status.truncate(width);
         Terminal::set_bg_color(STATUS_BG_COLOR);
-        println!("{}\r", spaces);
+        Terminal::set_fg_color(STATUS_FG_COLOR);
+        println!("{}\r", status);
+        Terminal::reset_fg_color();
         Terminal::reset_bg_color();
     }
 
     fn draw_message_bar(&self) {
         Terminal::clear_current_line();
     }
-
-    
 }
 
 fn die(e: std::io::Error) {

@@ -4,6 +4,7 @@ use std::fs;
 #[derive(Default)]
 pub struct Document {
     rows: Vec<Row>,
+    pub file_name: Option<String>,
 }
 
 impl Document {
@@ -15,6 +16,7 @@ impl Document {
         }
         Ok(Self {
             rows,
+            file_name: Some(filename.to_string()),
         })
     }
 
